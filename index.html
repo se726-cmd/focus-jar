@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f5f0">
+  <title>Focus Jar</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #242328;
+      background: #f7f5f0;
+      font-synthesis: none;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(ellipse at 50% 44%, rgba(231, 220, 248, .58), transparent 35rem),
+        #f7f5f0;
+    }
+
+    main {
+      width: min(100%, 440px);
+      text-align: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: #77727f;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.5rem, 9vw, 3.5rem);
+      font-weight: 500;
+      letter-spacing: -.055em;
+    }
+
+    .subtitle {
+      margin: 10px 0 34px;
+      color: #77727f;
+      font-size: .98rem;
+    }
+
+    .timer-card {
+      padding: 42px 28px 32px;
+      border: 1px solid rgba(58, 46, 74, .08);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, .76);
+      box-shadow: 0 22px 70px rgba(48, 37, 64, .09);
+    }
+
+    .timer {
+      margin: 0;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(4.4rem, 19vw, 6.5rem);
+      font-weight: 650;
+      letter-spacing: -.075em;
+      line-height: 1;
+    }
+
+    .session-label {
+      margin: 15px 0 16px;
+      color: #77727f;
+      font-size: .9rem;
+    }
+
+    .length-settings {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      width: min(100%, 280px);
+      margin: 0 auto 18px;
+      text-align: left;
+    }
+
+    .length-settings label {
+      display: grid;
+      gap: 6px;
+      color: #77727f;
+      font-size: .78rem;
+      font-weight: 600;
+    }
+
+    .length-settings input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #e4dfe9;
+      border-radius: 10px;
+      background: #fff;
+      color: inherit;
+      font: inherit;
+      font-size: .9rem;
+    }
+
+    .length-settings input:focus-visible {
+      outline: 3px solid #d5c4eb;
+      outline-offset: 1px;
+    }
+
+    .length-error {
+      margin: -8px 0 14px;
+      color: #a14555;
+      font-size: .82rem;
+    }
+
+    .length-error:empty { display: none; }
+
+    .modes {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 0 0 24px;
+    }
+
+    .mode {
+      min-width: 0;
+      padding: 9px 16px;
+      color: #77727f;
+      background: transparent;
+      font-size: .84rem;
+    }
+
+    .mode.active {
+      color: #60428a;
+      background: #f0eaf7;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    button {
+      min-width: 126px;
+      padding: 13px 22px;
+      border: 0;
+      border-radius: 999px;
+      font: inherit;
+      font-size: .95rem;
+      font-weight: 650;
+      cursor: pointer;
+      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    button:hover { transform: translateY(-2px); }
+    button:active { transform: translateY(0); }
+    button:focus-visible { outline: 3px solid #aa8cda; outline-offset: 3px; }
+
+    .start {
+      color: white;
+      background: #7553a6;
+      box-shadow: 0 8px 18px rgba(117, 83, 166, .2);
+    }
+
+    .start:hover { background: #654591; }
+
+    .reset {
+      color: #514a5a;
+      background: #f0edf4;
+    }
+
+    .reset:hover { background: #e8e2ef; }
+
+    .demo-speed {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 22px;
+      color: #77727f;
+      font-size: .88rem;
+      cursor: pointer;
+    }
+
+    .demo-speed input {
+      width: 17px;
+      height: 17px;
+      margin: 0;
+      accent-color: #7553a6;
+      cursor: pointer;
+    }
+
+    .audio-status {
+      margin: 8px 0 0;
+      color: #a14555;
+      font-size: .82rem;
+    }
+
+    .audio-status:empty { display: none; }
+
+    .hint {
+      margin: 22px 0 0;
+      color: #918b98;
+      font-size: .8rem;
+    }
+
+    .tasks {
+      margin-top: 20px;
+      padding: 22px;
+      border: 1px solid rgba(58, 46, 74, .08);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, .76);
+      text-align: left;
+    }
+
+    .tasks h2 {
+      margin: 0 0 16px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.35rem;
+      font-weight: 500;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .task-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .task-input {
+      flex: 1;
+      min-width: 0;
+      padding: 11px 14px;
+      border: 1px solid #e4dfe9;
+      border-radius: 12px;
+      background: #fff;
+      color: inherit;
+      font: inherit;
+      font-size: .9rem;
+    }
+
+    .task-input:focus-visible {
+      outline: 3px solid #d5c4eb;
+      outline-offset: 1px;
+    }
+
+    .add-task {
+      min-width: 76px;
+      padding: 10px 16px;
+      color: #fff;
+      background: #7553a6;
+      font-size: .9rem;
+    }
+
+    .add-task:hover { background: #654591; }
+
+    .task-list {
+      display: grid;
+      gap: 4px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .storage-status {
+      margin: 10px 0 0;
+      color: #a14555;
+      font-size: .82rem;
+    }
+
+    .storage-status:empty { display: none; }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .task-toggle {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      padding: 9px 4px;
+      border-radius: 8px;
+      background: transparent;
+      text-align: left;
+      font-size: .9rem;
+      font-weight: 450;
+    }
+
+    .task-toggle::before {
+      content: "";
+      flex: 0 0 18px;
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid #c9c1d1;
+      border-radius: 50%;
+    }
+
+    .task-toggle[aria-pressed="true"]::before {
+      border-color: #7553a6;
+      background: #7553a6;
+      box-shadow: inset 0 0 0 4px #fff;
+    }
+
+    .task-toggle[aria-pressed="true"] .task-text {
+      color: #9993a0;
+      text-decoration: line-through;
+    }
+
+    .task-text {
+      overflow-wrap: anywhere;
+    }
+
+    .delete-task {
+      min-width: 34px;
+      padding: 5px;
+      border-radius: 8px;
+      color: #898290;
+      background: transparent;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .delete-task:hover {
+      color: #684992;
+      background: #f0eaf7;
+    }
+
+    .progress {
+      margin-top: 20px;
+      padding: 22px;
+      border: 1px solid rgba(58, 46, 74, .08);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, .76);
+    }
+
+    .progress h2 {
+      margin: 0 0 18px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.35rem;
+      font-weight: 500;
+    }
+
+    .jar-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .jar-stat h3 {
+      margin: 0 0 10px;
+      color: #77727f;
+      font-size: .88rem;
+      font-weight: 650;
+    }
+
+    .jar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .jar-neck {
+      z-index: 1;
+      width: min(72px, 60%);
+      height: 22px;
+      margin-bottom: -2px;
+      border: 3px solid #a894c0;
+      border-radius: 10px 10px 3px 3px;
+      background: #f5f0fa;
+    }
+
+    .jar-body {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-end;
+      justify-content: center;
+      gap: 4px;
+      width: 100%;
+      max-width: 148px;
+      min-height: 112px;
+      padding: 12px 12px 14px;
+      overflow: hidden;
+      border: 3px solid #a894c0;
+      border-radius: 12px 12px 30px 30px;
+      background: linear-gradient(110deg, rgba(255, 255, 255, .84), rgba(233, 222, 246, .48));
+      box-shadow: inset 8px 0 12px rgba(255, 255, 255, .65);
+    }
+
+    .marble {
+      flex: 0 0 20px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #fff1d2 0 9%, #e7aa68 35%, #bd728d 100%);
+      box-shadow: inset -2px -3px 4px rgba(91, 48, 92, .16), 0 1px 2px rgba(56, 38, 70, .16);
+    }
+
+    .marble.is-new {
+      animation: marble-drop 420ms cubic-bezier(.2, .75, .35, 1.2) both;
+    }
+
+    @keyframes marble-drop {
+      from { transform: translateY(-40px) scale(.7); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .focus-count {
+      margin: 14px 0 0;
+      color: #77727f;
+      font-size: .82rem;
+    }
+
+    @media (max-width: 360px) {
+      .task-form { gap: 6px; }
+      .add-task { min-width: 64px; padding-inline: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">A little space to focus</p>
+    <h1>Focus Jar</h1>
+    <p class="subtitle">One thing at a time.</p>
+
+    <section class="timer-card" aria-label="Focus timer">
+      <p class="timer" id="timer" role="timer" aria-live="off">25:00</p>
+      <p class="session-label" id="status" aria-live="polite">Ready when you are</p>
+      <div class="length-settings">
+        <label for="focus-length">Focus minutes
+          <input id="focus-length" type="number" min="1" step="1" value="25">
+        </label>
+        <label for="break-length">Break minutes
+          <input id="break-length" type="number" min="1" step="1" value="5">
+        </label>
+      </div>
+      <p class="length-error" id="length-error" aria-live="polite"></p>
+      <div class="modes" aria-label="Timer length">
+        <button class="mode active" id="focus-mode" type="button" aria-pressed="true">Focus 25</button>
+        <button class="mode" id="break-mode" type="button" aria-pressed="false">Break 5</button>
+      </div>
+      <div class="actions">
+        <button class="start" id="start" type="button">Start</button>
+        <button class="reset" id="reset" type="button">Reset</button>
+      </div>
+      <label class="demo-speed" for="demo-speed">
+        <input id="demo-speed" type="checkbox">
+        Demo speed
+      </label>
+      <p class="audio-status" id="audio-status" aria-live="polite"></p>
+    </section>
+    <section class="tasks" aria-labelledby="tasks-heading">
+      <h2 id="tasks-heading">Your tasks</h2>
+      <form class="task-form" id="task-form">
+        <label class="sr-only" for="task-input">Add a task</label>
+        <input class="task-input" id="task-input" type="text" placeholder="What do you need to do?" autocomplete="off">
+        <button class="add-task" type="submit">Add</button>
+      </form>
+      <ul class="task-list" id="task-list" aria-label="Task list"></ul>
+      <p class="storage-status" id="storage-status" aria-live="polite"></p>
+    </section>
+    <section class="progress" aria-labelledby="progress-heading">
+      <h2 id="progress-heading">Focus Jar</h2>
+      <div class="jar-stats">
+        <div class="jar-stat">
+          <h3>Today</h3>
+          <div class="jar" aria-hidden="true">
+            <div class="jar-neck"></div>
+            <div class="jar-body" id="today-jar-body"></div>
+          </div>
+          <p class="focus-count" id="today-focus-count" aria-live="polite">0 focus sessions</p>
+        </div>
+        <div class="jar-stat">
+          <h3>All time</h3>
+          <div class="jar" aria-hidden="true">
+            <div class="jar-neck"></div>
+            <div class="jar-body" id="all-time-jar-body"></div>
+          </div>
+          <p class="focus-count" id="all-time-focus-count" aria-live="polite">0 focus sessions</p>
+        </div>
+      </div>
+    </section>
+    <p class="hint">Take a breath. You’ve got this.</p>
+  </main>
+
+  <script>
+    const timerDisplay = document.querySelector("#timer");
+    const statusDisplay = document.querySelector("#status");
+    const startButton = document.querySelector("#start");
+    const resetButton = document.querySelector("#reset");
+    const focusButton = document.querySelector("#focus-mode");
+    const breakButton = document.querySelector("#break-mode");
+    const focusLengthInput = document.querySelector("#focus-length");
+    const breakLengthInput = document.querySelector("#break-length");
+    const lengthError = document.querySelector("#length-error");
+    const demoSpeedCheckbox = document.querySelector("#demo-speed");
+    const audioStatus = document.querySelector("#audio-status");
+    const taskForm = document.querySelector("#task-form");
+    const taskInput = document.querySelector("#task-input");
+    const taskList = document.querySelector("#task-list");
+    const storageStatus = document.querySelector("#storage-status");
+    const todayJarBody = document.querySelector("#today-jar-body");
+    const allTimeJarBody = document.querySelector("#all-time-jar-body");
+    const todayFocusCount = document.querySelector("#today-focus-count");
+    const allTimeFocusCount = document.querySelector("#all-time-focus-count");
+    const storageKey = "focusJarState";
+    let focusMinutes = 25;
+    let breakMinutes = 5;
+    let sessionLength = focusMinutes * 60;
+    let secondsRemaining = sessionLength;
+    let tasks = [];
+    let completedFocusSessions = 0;
+    let todayFocusSessions = 0;
+    let todayDate = getLocalDateKey();
+    let sessionName = "focus";
+    let intervalId = null;
+    let audioContext = null;
+
+    // Keep the display in mm:ss format.
+    function renderTime() {
+      const minutes = Math.floor(secondsRemaining / 60);
+      const seconds = secondsRemaining % 60;
+      timerDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function getLocalDateKey() {
+      const date = new Date();
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    // Load only well-formed saved state.
+    function loadState() {
+      try {
+        const savedState = window.localStorage.getItem(storageKey);
+        if (savedState === null) return;
+
+        const state = JSON.parse(savedState);
+        const validTasks = Array.isArray(state?.tasks) && state.tasks.every((task) =>
+          task && typeof task.text === "string" && typeof task.completed === "boolean"
+        );
+        if (!validTasks || !Number.isSafeInteger(state.completedFocusSessions) || state.completedFocusSessions < 0) {
+          throw new TypeError("Saved Focus Jar data has an invalid format.");
+        }
+
+        const hasDailyState = Object.hasOwn(state, "todayDate") || Object.hasOwn(state, "todayFocusSessions");
+        if (hasDailyState && (
+          typeof state.todayDate !== "string" ||
+          !Number.isSafeInteger(state.todayFocusSessions) ||
+          state.todayFocusSessions < 0 ||
+          state.todayFocusSessions > state.completedFocusSessions
+        )) {
+          throw new TypeError("Saved daily Focus Jar data has an invalid format.");
+        }
+
+        tasks = state.tasks.map(({ text, completed }) => ({ text, completed }));
+        completedFocusSessions = state.completedFocusSessions;
+        if (state.todayDate === todayDate) todayFocusSessions = state.todayFocusSessions;
+      } catch (error) {
+        console.error("Could not load Focus Jar data from localStorage.", error);
+        storageStatus.textContent = "Couldn't load saved data from this browser.";
+      }
+    }
+
+    // Persist tasks, today's count, and all-time Focus sessions together.
+    function saveState() {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify({
+          tasks,
+          completedFocusSessions,
+          todayDate,
+          todayFocusSessions
+        }));
+        storageStatus.textContent = "";
+      } catch (error) {
+        console.error("Could not save Focus Jar data to localStorage.", error);
+        storageStatus.textContent = "Couldn't save changes to this browser.";
+      }
+    }
+
+    function renderJar(body, count, animateNewest = false) {
+      body.replaceChildren();
+      for (let index = 0; index < count; index += 1) {
+        const marble = document.createElement("span");
+        marble.className = animateNewest && index === count - 1 ? "marble is-new" : "marble";
+        body.append(marble);
+      }
+    }
+
+    function renderFocusJars(animateNewest = false) {
+      renderJar(todayJarBody, todayFocusSessions, animateNewest);
+      renderJar(allTimeJarBody, completedFocusSessions, animateNewest);
+      const todayLabel = todayFocusSessions === 1 ? "focus session today" : "focus sessions today";
+      const allTimeLabel = completedFocusSessions === 1 ? "focus session" : "focus sessions";
+      todayFocusCount.textContent = `${todayFocusSessions} ${todayLabel}`;
+      allTimeFocusCount.textContent = `${completedFocusSessions} ${allTimeLabel}`;
+    }
+
+    function resetTodayIfNeeded() {
+      const currentDate = getLocalDateKey();
+      if (currentDate === todayDate) return;
+
+      todayDate = currentDate;
+      todayFocusSessions = 0;
+      renderFocusJars();
+      saveState();
+    }
+
+    function renderTasks() {
+      taskList.replaceChildren();
+      tasks.forEach((task) => {
+        const item = document.createElement("li");
+        item.className = "task-item";
+
+        const toggleButton = document.createElement("button");
+        toggleButton.className = "task-toggle";
+        toggleButton.type = "button";
+        toggleButton.setAttribute("aria-pressed", String(task.completed));
+
+        const taskText = document.createElement("span");
+        taskText.className = "task-text";
+        taskText.textContent = task.text;
+        toggleButton.append(taskText);
+        toggleButton.addEventListener("click", () => {
+          task.completed = !task.completed;
+          toggleButton.setAttribute("aria-pressed", String(task.completed));
+          saveState();
+        });
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "delete-task";
+        deleteButton.type = "button";
+        deleteButton.textContent = "×";
+        deleteButton.setAttribute("aria-label", `Delete ${task.text}`);
+        deleteButton.addEventListener("click", () => {
+          const taskIndex = tasks.indexOf(task);
+          if (taskIndex !== -1) tasks.splice(taskIndex, 1);
+          item.remove();
+          saveState();
+        });
+
+        item.append(toggleButton, deleteButton);
+        taskList.append(item);
+      });
+    }
+
+    // Add a marble and update the completed Focus session count.
+    function recordFocusSession() {
+      resetTodayIfNeeded();
+      completedFocusSessions += 1;
+      todayFocusSessions += 1;
+      renderFocusJars(true);
+      saveState();
+    }
+
+    function updateSessionLength(input, name) {
+      const minutes = input.valueAsNumber;
+      if (!Number.isSafeInteger(minutes) || minutes < 1) {
+        input.value = String(name === "focus" ? focusMinutes : breakMinutes);
+        lengthError.textContent = "Enter a whole number of minutes, at least 1.";
+        return;
+      }
+
+      lengthError.textContent = "";
+      if (name === "focus") {
+        focusMinutes = minutes;
+        focusButton.textContent = `Focus ${minutes}`;
+      } else {
+        breakMinutes = minutes;
+        breakButton.textContent = `Break ${minutes}`;
+      }
+
+      if (sessionName === name) {
+        window.clearInterval(intervalId);
+        intervalId = null;
+        sessionLength = minutes * 60;
+        secondsRemaining = sessionLength;
+        renderTime();
+        startButton.textContent = "Start";
+        statusDisplay.textContent = "Timer updated";
+      }
+    }
+
+    function reportAudioError(error) {
+      console.error("Could not play the Focus Jar session sound.", error);
+      audioStatus.textContent = "Session sound couldn't play. Check your browser's audio settings.";
+    }
+
+    // Prepare audio during the user's Start click so browsers allow playback later.
+    function prepareAudio() {
+      const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextConstructor) {
+        audioStatus.textContent = "Session sounds aren't supported in this browser.";
+        return;
+      }
+
+      try {
+        if (audioContext === null) audioContext = new AudioContextConstructor();
+        if (audioContext.state === "suspended") {
+          audioContext.resume()
+            .then(() => { audioStatus.textContent = ""; })
+            .catch(reportAudioError);
+        } else {
+          audioStatus.textContent = "";
+        }
+      } catch (error) {
+        reportAudioError(error);
+      }
+    }
+
+    function playSessionSound(name) {
+      if (audioContext === null) return;
+
+      const play = () => {
+        try {
+          const notes = name === "focus"
+            ? [{ frequency: 880, delay: 0 }, { frequency: 1175, delay: 0.15 }, { frequency: 1397, delay: 0.3 }]
+            : [{ frequency: 523, delay: 0 }, { frequency: 392, delay: 0.24 }];
+          const startTime = audioContext.currentTime;
+
+          notes.forEach(({ frequency, delay }) => {
+            const oscillator = audioContext.createOscillator();
+            const volume = audioContext.createGain();
+            const noteStart = startTime + delay;
+            oscillator.type = name === "focus" ? "sine" : "triangle";
+            oscillator.frequency.setValueAtTime(frequency, noteStart);
+            volume.gain.setValueAtTime(0.0001, noteStart);
+            volume.gain.exponentialRampToValueAtTime(0.14, noteStart + 0.025);
+            volume.gain.exponentialRampToValueAtTime(0.0001, noteStart + 0.23);
+            oscillator.connect(volume);
+            volume.connect(audioContext.destination);
+            oscillator.start(noteStart);
+            oscillator.stop(noteStart + 0.24);
+          });
+        } catch (error) {
+          reportAudioError(error);
+        }
+      };
+
+      if (audioContext.state === "running") {
+        play();
+      } else {
+        audioContext.resume().then(play).catch(reportAudioError);
+      }
+    }
+
+    loadState();
+    renderTasks();
+    renderFocusJars();
+    window.setInterval(resetTodayIfNeeded, 60_000);
+
+    // Pause or resume the countdown, stopping cleanly when the session ends.
+    startButton.addEventListener("click", () => {
+      if (intervalId !== null) {
+        window.clearInterval(intervalId);
+        intervalId = null;
+        startButton.textContent = "Start";
+        statusDisplay.textContent = "Paused";
+        return;
+      }
+
+      if (secondsRemaining <= 0) {
+        secondsRemaining = sessionLength;
+        renderTime();
+      }
+
+      prepareAudio();
+      statusDisplay.textContent = `You’re in ${sessionName} mode`;
+      startButton.textContent = "Pause";
+      intervalId = window.setInterval(() => {
+        secondsRemaining = Math.max(0, secondsRemaining - (demoSpeedCheckbox.checked ? 60 : 1));
+        renderTime();
+
+        if (secondsRemaining <= 0) {
+          window.clearInterval(intervalId);
+          intervalId = null;
+          startButton.textContent = "Start";
+          statusDisplay.textContent = "Lovely work. Session complete!";
+          if (sessionName === "focus") recordFocusSession();
+          playSessionSound(sessionName);
+        }
+      }, 1000);
+    });
+
+    // Select a session length and reset the countdown to it.
+    function selectMode(length, name, activeButton, inactiveButton, message) {
+      window.clearInterval(intervalId);
+      intervalId = null;
+      sessionLength = length;
+      secondsRemaining = sessionLength;
+      sessionName = name;
+      renderTime();
+      startButton.textContent = "Start";
+      activeButton.classList.add("active");
+      activeButton.setAttribute("aria-pressed", "true");
+      inactiveButton.classList.remove("active");
+      inactiveButton.setAttribute("aria-pressed", "false");
+      statusDisplay.textContent = message;
+    }
+
+    focusButton.addEventListener("click", () => {
+      selectMode(focusMinutes * 60, "focus", focusButton, breakButton, "Ready when you are");
+    });
+
+    breakButton.addEventListener("click", () => {
+      selectMode(breakMinutes * 60, "break", breakButton, focusButton, "A short break, just for you");
+    });
+
+    focusLengthInput.addEventListener("change", () => updateSessionLength(focusLengthInput, "focus"));
+    breakLengthInput.addEventListener("change", () => updateSessionLength(breakLengthInput, "break"));
+
+    // Reset the active session length and stop any running countdown.
+    resetButton.addEventListener("click", () => {
+      window.clearInterval(intervalId);
+      intervalId = null;
+      secondsRemaining = sessionLength;
+      renderTime();
+      startButton.textContent = "Start";
+      statusDisplay.textContent = "Ready when you are";
+    });
+
+    // Add tasks as text so entered content is never treated as HTML.
+    taskForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const text = taskInput.value.trim();
+      if (!text) {
+        taskInput.focus();
+        return;
+      }
+
+      tasks.push({ text, completed: false });
+      renderTasks();
+      saveState();
+      taskInput.value = "";
+      taskInput.focus();
+    });
+  </script>
+</body>
+</html>
